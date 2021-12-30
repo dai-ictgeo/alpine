@@ -6,8 +6,6 @@ import on from '../utils/on'
 
 directive('model', (el, { modifiers, expression }, { effect, cleanup }) => {
     let evaluate = evaluateLater(el, expression)
-    let assignmentExpression = `${expression} = rightSideOfExpression($event, ${expression})`
-    let evaluateAssignment = evaluateLater(el, assignmentExpression)
 
     // If the element we are binding to is a select, a radio, or checkbox
     // we'll listen for the change event instead of the "input" event.
@@ -19,10 +17,9 @@ directive('model', (el, { modifiers, expression }, { effect, cleanup }) => {
     let assigmentFunction = generateAssignmentFunction(el, modifiers, expression)
 
     let removeListener = on(el, event, modifiers, (e) => {
-        evaluateAssignment(() => {}, { scope: {
-            '$event': e,
-            rightSideOfExpression: assigmentFunction
-        }})
+        evaluateLater(el, function () {
+            this[expression] = assigmentFunction(e, expression)
+        })(() => {})
     })
 
     cleanup(() => removeListener())
